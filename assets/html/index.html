@@ -9,21 +9,25 @@
   </body>
   <script type="text/javascript" src="../js/jquery-3.3.1.js">  </script>
   <script type="text/javascript">
-    turno{
+    turno={
       get:(page,call)=>{
         $.ajax({
-          url:"../../Turno.php",
-          type:'get',
+          url:"../../class/Turno.php",
+          type:'post',
           data:{
             action:"getRows",
             page
-          },success:(rows){
-            return call(null,rows);
+          },success:(rows)=>{
+            return call(null,JSON.parse(rows));
           },error:(err) => {
             return call(err);
           }
         })
       }
     }
+    turno.get(1,(err,rows)=>{
+      if(err) return console.error(err)
+      console.log(rows);
+    })
   </script>
 </html>
