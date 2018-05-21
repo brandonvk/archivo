@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Turnado</title>
+  </head>
+  <body>
+
+  </body>
+  <script type="text/javascript" src="../js/jquery-3.3.1.js">  </script>
+  <script type="text/javascript">
+    turno{
+      get:(page,call)=>{
+        $.ajax({
+          url:"../../Turno.php",
+          type:'get',
+          data:{
+            action:"getRows",
+            page
+          },success:(rows){
+            return call(null,rows);
+          },error:(err) => {
+            return call(err);
+          }
+        })
+      }
+    }
+  </script>
+</html>
