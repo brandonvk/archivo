@@ -8,7 +8,7 @@ class Sql extends Credentials{
   }
 
   public function dissconect(){
-    mysql_close($this->sql);
+    $this->sql->close();
   }
 
   public function toArray($query){
@@ -19,7 +19,7 @@ class Sql extends Credentials{
     while($row = $rows->fetch_assoc()){
       $result[]=$row;
     }
-    $this->dissconnect();
+    $this->dissconect();
     return $result;
   }
 }
