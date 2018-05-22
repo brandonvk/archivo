@@ -1,0 +1,10 @@
+validacion del formulario
+campo de archivo
+columna de opciones
+  opcion de borrar
+  opcion de editar
+diseño del sitio
+*alerta de hechos
+filtros
+paginador
+definir htaccess
