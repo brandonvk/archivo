@@ -11,6 +11,20 @@ class Sql extends Credentials{
     $this->sql->close();
   }
 
+  public function insert($table,$data){
+    $this->connect();
+    $campos="";
+    $valores="";
+    foreach ($data as $key => $campo) {
+      $campos.="$key,";
+      $valores.="'$campo',";
+    }
+    // return "INSERT INTO $table (".substr($campos,0,-1).") values (".substr($valores,0,-1).")";
+    $rs=$this->sql->query("INSERT INTO $table (".substr($campos,0,-1).") values (".substr($valores,0,-1).")");
+    $this->dissconect();
+    return $rs;
+  }
+
   public function toArray($query){
     $this->connect();
     $rows=$this->sql->query($query);
@@ -21,6 +35,10 @@ class Sql extends Credentials{
     }
     $this->dissconect();
     return $result;
+  }
+  public function toFirstArray($query){
+    if(isset($this->toArray($query)[0])) return $this->toArray($query)[0];
+    else return [];
   }
 }
 ?>
