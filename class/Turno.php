@@ -34,15 +34,15 @@ include_once("includes/Sql.php");
       }
     }
     public function addTurno($params){
+      return $this->response = [$params,$_FILES];
       $params["fecha_entrega"]="{$params["aaaa"]}-{$params["mm"]}-{$params["dd"]}";
       unset($params["aaaa"]);
       unset($params["mm"]);
       unset($params["dd"]);
       if($this->insert("turno",$params)){
         $this->response = ["success"=>1,"msg"=>"Se inserto correctamente el registro."];
-      }else{
-        $this->response = ["success"=>0,"err"=>"Ocurrio un error al insertar el registro ."];
-      }
+      }else $this->response = ["success"=>0,"err"=>"Ocurrio un error al insertar el registro ."];
+
     }
 
     public function editTurno($params){
