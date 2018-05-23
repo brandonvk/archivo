@@ -1,0 +1,1 @@
+ALTER TABLE `turno` ADD `documento` VARCHAR(100) NOT NULL AFTER `turnado`;

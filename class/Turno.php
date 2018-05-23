@@ -35,15 +35,19 @@ include_once("File.php");
       }
     }
     public function addTurno($params){
-      return $this->response = $this->upload_file($_FILES);
-      return $this->response = [$params,$_FILES];
-      $params["fecha_entrega"]="{$params["aaaa"]}-{$params["mm"]}-{$params["dd"]}";
-      unset($params["aaaa"]);
-      unset($params["mm"]);
-      unset($params["dd"]);
-      if($this->insert("turno",$params)){
-        $this->response = ["success"=>1,"msg"=>"Se inserto correctamente el registro."];
-      }else $this->response = ["success"=>0,"err"=>"Ocurrio un error al insertar el registro ."];
+      // return $this->response = [$params,$_FILES];
+      $documento = $this->upload_file($_FILES,"turno/");
+      if(!isset($documento["error"])){
+        $params["documento"]=array_pop($documento["success"])["src"];
+        $params["fecha_entrega"]="{$params["aaaa"]}-{$params["mm"]}-{$params["dd"]}";
+        unset($params["aaaa"]);
+        unset($params["mm"]);
+        unset($params["dd"]);
+        // $this->response = $params;
+        if($this->insert("turno",$params)){
+          $this->response = ["success"=>1,"msg"=>"Se inserto correctamente el registro."];
+        }else $this->response = ["success"=>0,"err"=>"Ocurrio un error al insertar el registro ."];
+      }else $this->response = ["success"=>0,"err"=>(isset($documento["error"])?$documento["error"]:$this->response)];
 
     }
 
@@ -86,8 +90,8 @@ include_once("File.php");
         "rows"=>$rows,
         "maxlength"=>(int)$maxlength];
     }
-    public function upload_file($files){
-      return (new File())->upload_file($files);
+    public function upload_file($files,$dir){
+      return (new File())->upload_file($files,$dir);
     }
   }
   $Turno = (new Turno($_POST))->response;
