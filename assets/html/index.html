@@ -35,13 +35,26 @@
       <!-- <img src="../css/plugin/iconic-bootstrap/svg/cog.svg" alt="icon name"> -->
       <!-- <span class="oi oi-icon-star" title="icon star" aria-hidden="true"></span> -->
 
-      <div class="col col-md-12 col-xs-12 col-sm-12">
+      <div class="col col-md-12 col-xs-12 col-sm-12 col-lg-12">
         <span class="oi oi-data-transfer-upload"></span>
         <h2 class="titulo">Turnado</h2>
       </div>
+
       <div class="col col-md-12 col-xs-12 col-sm-12 agregar">
+      </div>
+
+      <div class="col col-md-6 col-xs-6 col-sm-6 col-sm-6">
+      <div class="input-group">
+        <input id="search_field" type="text" class="form-control" placeholder="Buscar..." aria-label="Input group example" aria-describedby="btnGroupAddon">
+        <button id="search" class="btn btn-primary" type="button" name="button">Buscar</button>
+      </div>
+      </div>
+
+      <div class="col col-md-6 col-xs-6 col-sm-6 text-right">
         <button id="addTurno" class="btn btn-success " type="button" name="button" >Agregar</button>
       </div>
+
+
       <div class="col col-md-12 col-xs-12 col-sm-12 main">
         <div class="col col-md-12 col-xs-12 col-sm-12 table">
 
@@ -158,13 +171,14 @@
           html.modal_show("elimturno")
         }
       },
-      get:(page,call)=>{
+      get:(page,search,call)=>{
         $.ajax({
           url:"../../class/Turno.php",
           type:'post',
           data:{
             action:"getRows",
-            page
+            page,
+            search
           },success:(rows)=>{
             return call(null,JSON.parse(rows));
           },error:(err) => {
@@ -192,7 +206,7 @@
           <thead><tr><td>${table_header.join("</td><td>")}</td></tr></thead>
           <tbody>${table_body}</tbody></table>`);
       },page:(maxlength,page_by_view,set_pag) => {
-        pag_total=Math.floor(maxlength/page_by_view);
+        pag_total=Math.ceil(maxlength/page_by_view);
         page_available=3;//paginas que se puedan visualizar en el tablero
         page_view=Math.ceil(page_available/2);
         // console.log(page_view,page_available);
@@ -209,8 +223,8 @@
         page_str+=`<li class="page-item ${page_str_rigth}"><a  class="page-link" onClick="turno.load(${set_pag+1})" href="javascript:;">></li>`;
         page_str+="</ul></nav>";
         $(".main .page").html(`${page_str}`);
-      },load:(pag) => {
-        turno.get(pag,(err,rows) => {
+      },load:(pag,search) => {
+        turno.get(pag,search,(err,rows) => {
           if(err) return console.error(err);
           turno.rows=rows.rows;
           turno.table(rows.rows);
@@ -291,6 +305,17 @@
       $("[name=id_turno]").remove();
       $("[name=action]").val("add");
     }))
+    $("#search").click((e)=>{
+      console.log("buscando",$("#search_field").val(),$(this));
+      turno.load(1,$("#search_field").val())
+      $("#search_field").parent().append("<button id='clean' class='btn btn-warning'>Limpiar</button>");
+      $("#clean").click((e)=>{
+        $("#search_field").val("")
+        turno.load(1)
+        $("#clean").remove()
+      })
+    })
+
 
   </script>
 </html>

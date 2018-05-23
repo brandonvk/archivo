@@ -17,7 +17,7 @@ include_once("File.php");
         switch ($params["action"]) {
           case 'getRows':
             if(!isset($params['page'])) $this->response = ["error"=>"no se encontro página",'success'=>false];
-            $this->get($params['page']);
+            $this->get($params['page'],isset($params['search'])?$params['search']:"");
           break;
           case 'add':
             unset($params["action"]);
@@ -82,12 +82,17 @@ include_once("File.php");
         }else $this->response=["success"=>0,"err"=>"Ocurrio un error al eliminar el registro."];
       }else $this->response=["success"=>0,"err"=>"No se agrego identificador de turno."];
     }
-    public function get($page){
+    public function get($page,$search){
+
       $limit_rows=($this->limit_by_page*$page)-$this->limit_by_page;
-      $maxlength=$this->toFirstArray("SELECT count(*) as total FROM turno;")["total"];
+      $filter="";
+      if($search){
+        $filter=" && (entrega like '%$search%' || tipo_documento like '%$search%' || turnado like '%$search%')";
+      }
+      $maxlength=$this->toFirstArray("SELECT count(*) as total FROM turno WHERE isDelete=0 $filter;")["total"];
 
       $rows=$this->toArray("SELECT id_turno,fecha_entrega,entrega,tipo_documento,descripcion,turnado,documento
-        FROM turno WHERE isDelete=0 LIMIT $limit_rows,{$this->limit_by_page};");
+        FROM turno WHERE isDelete=0 $filter LIMIT $limit_rows,{$this->limit_by_page};");
       $this->response = [
         "success"=>1,
         "rows"=>$rows,
