@@ -191,12 +191,17 @@
         $(".main .table").html(`<table class="table">
           <thead><tr><td>${table_header.join("</td><td>")}</td></tr></thead>
           <tbody>${table_body}</tbody></table>`);
-      },page:(maxlength,view,set_pag) => {
-        pag_total=Math.ceil(maxlength/view);
-        page_str=`<nav aria-label="Paginador tu"><ul class="pagination">`;
+      },page:(maxlength,page_by_view,set_pag) => {
+        pag_total=Math.floor(maxlength/page_by_view);
+        page_available=3;//paginas que se puedan visualizar en el tablero
+        page_view=Math.ceil(page_available/2);
+        // console.log(page_view,page_available);
+        i=((page_min = set_pag - page_view)<1)?0:page_min;
+        // console.log(page_view,set_pag,page_min,view,maxlength);
+        page_str=`<nav aria-label="Paginador turno"><ul class="pagination text-center">`;
         page_str_left=(set_pag-1>0)?"":"disabled";
         page_str+=`<li class="page-item ${page_str_left}"><a  class="page-link" onClick="turno.load(${set_pag-1})" href="javascript:;"><</li>`;
-        for (var i = 0; i < 5; i++) {
+        for (i; i < (page_min<0?0:page_min)+page_available; i++) {
           page_active=(set_pag==i+1)?"active":"";
           if(i>-1 && (i+1)<=pag_total)page_str+=`<li class="page-item ${page_active}"><a class="page-link" onClick="turno.load(${i+1})" href="javascript:;">${i+1}</li>`;
         }
@@ -209,7 +214,7 @@
           if(err) return console.error(err);
           turno.rows=rows.rows;
           turno.table(rows.rows);
-          turno.page(rows.maxlength,5,pag);
+          turno.page(rows.maxlength,10,pag);
         })
       }
     }

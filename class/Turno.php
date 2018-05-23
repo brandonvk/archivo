@@ -5,7 +5,7 @@ include_once("File.php");
 
     public $response;
 
-    public $limit_by_page=5;
+    public $limit_by_page=10;
 
     public function __construct($params){
       $this->response = ["success"=>0,"error"=>"ocurrio un error inesperado"];
