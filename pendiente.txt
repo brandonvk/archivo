@@ -1,10 +1,10 @@
-validacion del formulario
-campo de archivo
-columna de opciones
-  opcion de borrar
-  opcion de editar
-diseño del sitio
+-campo de archivo
+-columna de opciones
+  -opcion de borrar
+  -opcion de editar
+paginador
+*validacion del formulario
 *alerta de hechos
 filtros
-paginador
+diseño del sitio
 definir htaccess

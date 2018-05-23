@@ -46,52 +46,18 @@
         <div class="col col-md-12 col-xs-12 col-sm-12 table">
 
         </div>
-        <div class="col col-md-12 col-xs-12 col-sm-12 page">
+        <div class="col col-md-12 col-xs-12 col-sm-12 page text-center">
 
         </div>
       </div>
     </div>
-    <!-- modal -->
-    <!-- <button type="button" class="btn btn-primary" >Open modal for @mdo</button> -->
 
-    <!-- <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-      <div class="modal-dialog" role="document">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="exampleModalLabel">New message</h5>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-              <span aria-hidden="true">&times;</span>
-            </button>
-          </div>
-          <div class="modal-body">
-            <form>
-              <div class="form-group">
-                <label for="recipient-name" class="col-form-label">Recipient:</label>
-                <input type="text" class="form-control" id="recipient-name">
-              </div>
-              <div class="form-group">
-                <label for="message-text" class="col-form-label">Message:</label>
-                <textarea class="form-control" id="message-text"></textarea>
-              </div>
-            </form>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-            <button type="button" class="btn btn-primary">Send message</button>
-          </div>
-        </div>
-      </div>
-    </div> -->
   </body>
   <script type="text/javascript" src="../js/jquery-3.3.1.js">  </script>
   <script type="text/javascript" src="../js/popper.min.js">  </script>
   <script type="text/javascript" src="../js/bootstrap.min.js">  </script>
   <script type="text/javascript">
-  // $("#exampleModal").modal("show");
-  // setTimeout(function(){
-  //   console.log("cerrar");
-  //   $("#exampleModal").modal("hide");
-  // },1000*5)
+
     let html={
       modal_head:(id,title) => {
         return head=`<div class="modal fade" id="${id}" tabindex="-1" role="dialog" aria-labelledby="${id}Label" aria-hidden="true">`+
@@ -149,9 +115,13 @@
           html.modal_show("turno",()=>{
 
             $(`#formturno`)[0].reset();
+            $(`#formturno #ver`).remove();
             if(datos=turno.rows[id]){
+              list_field_unable=["documento"];
+              // console.log("x__",datos,`<button id="ver" onClick="javascript:window.open('../../${datos["documento"]}');">Ver</button>`);
+              if(datos["documento"]) $("#documento").parent().append(`<button id="ver" class="btn btn-success" id="ver" onClick="javascript:window.open('../../${datos["documento"]}');">Ver</button>`);
               $(".modal-title").text("Editar turno");
-              $(`#${id} form`).append(`<input value="${datos["id_turno"]}" type="hidden" name="id_turno">`);
+              $(`#formturno`).append(`<input value="${datos["id_turno"]}" type="hidden" name="id_turno">`);
               datos["action"]="edit";
               if(datos["fecha_entrega"]){
                 let fecha = datos["fecha_entrega"].split("-")
@@ -160,7 +130,7 @@
                 datos["aaaa"]=fecha.pop()
               }
               for (var dato in datos) {
-                $(`#${dato}`).val(datos[dato])
+                if(list_field_unable.indexOf(dato)==-1) $(`#${dato}`).val(datos[dato])
               }
             }
           });
@@ -221,21 +191,32 @@
         $(".main .table").html(`<table class="table">
           <thead><tr><td>${table_header.join("</td><td>")}</td></tr></thead>
           <tbody>${table_body}</tbody></table>`);
-      },page:(maxlength,view) => {
-
+      },page:(maxlength,view,set_pag) => {
+        pag_total=Math.ceil(maxlength/view);
+        page_str=`<nav aria-label="Paginador tu"><ul class="pagination">`;
+        page_str_left=(set_pag-1>0)?"":"disabled";
+        page_str+=`<li class="page-item ${page_str_left}"><a  class="page-link" onClick="turno.load(${set_pag-1})" href="javascript:;"><</li>`;
+        for (var i = 0; i < 5; i++) {
+          page_active=(set_pag==i+1)?"active":"";
+          if(i>-1 && (i+1)<=pag_total)page_str+=`<li class="page-item ${page_active}"><a class="page-link" onClick="turno.load(${i+1})" href="javascript:;">${i+1}</li>`;
+        }
+        page_str_rigth=(set_pag+1<=pag_total)?"":"disabled";
+        page_str+=`<li class="page-item ${page_str_rigth}"><a  class="page-link" onClick="turno.load(${set_pag+1})" href="javascript:;">></li>`;
+        page_str+="</ul></nav>";
+        $(".main .page").html(`${page_str}`);
       },load:(pag) => {
         turno.get(pag,(err,rows) => {
           if(err) return console.error(err);
           turno.rows=rows.rows;
           turno.table(rows.rows);
-          turno.page(rows.maxlength,10);
+          turno.page(rows.maxlength,5,pag);
         })
       }
     }
     turno.load(1);
     html.modal_add("turno","Agregar turno",'form',
     `<!--<div><h1>con botas</h1></div>-->
-    <form id="formturno" class="formModal" action="jacascript:;">
+    <form id="formturno" class="formModal" action="javascript:;">
     <div class="form-group">
       <label>Entregado por:</label>
       <input id="entrega" name="entrega" type="text" class="form-control">
@@ -277,7 +258,7 @@
       if(quest) {
         $("#formturno").submit(function(){
           var form = new FormData($('#formturno')[0]);
-          console.log("data",form);
+          // console.log("data",form);
           $.ajax({
             url:"../../class/Turno.php",
             type:'post',
@@ -301,6 +282,7 @@
     })
     $("#addTurno").click((e)=>html.modal_show("turno",()=>{
       $(`#formturno`)[0].reset();
+      $(`#formturno #ver`).remove();
       $("[name=id_turno]").remove();
       $("[name=action]").val("add");
     }))

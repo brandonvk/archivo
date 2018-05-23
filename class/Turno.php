@@ -5,8 +5,11 @@ include_once("File.php");
 
     public $response;
 
+    public $limit_by_page=5;
+
     public function __construct($params){
-      $this->response = ["success"=>0,"error"=>"ocurrio un error inneserado"];
+      $this->response = ["success"=>0,"error"=>"ocurrio un error inesperado"];
+      // return $this->response = ["success"=>0,"error"=>"ocurrio un error inneserado","params"=>$params];
       if(!isset($params["action"])) $this->response = ["error"=>"no se encontro accion",
         //'params'=>[$_GET,$_POST,$_REQUEST,$_FILES],
         'success'=>false];
@@ -39,6 +42,7 @@ include_once("File.php");
       $documento = $this->upload_file($_FILES,"turno/");
       if(!isset($documento["error"])){
         $params["documento"]=array_pop($documento["success"])["src"];
+      }else if(isset($documento["error"])) $this->response = ["success"=>0,"err"=>(isset($documento["error"])?$documento["error"]:$this->response)];
         $params["fecha_entrega"]="{$params["aaaa"]}-{$params["mm"]}-{$params["dd"]}";
         unset($params["aaaa"]);
         unset($params["mm"]);
@@ -47,12 +51,15 @@ include_once("File.php");
         if($this->insert("turno",$params)){
           $this->response = ["success"=>1,"msg"=>"Se inserto correctamente el registro."];
         }else $this->response = ["success"=>0,"err"=>"Ocurrio un error al insertar el registro ."];
-      }else $this->response = ["success"=>0,"err"=>(isset($documento["error"])?$documento["error"]:$this->response)];
+
 
     }
 
     public function editTurno($params){
       if(isset($params["id_turno"])){
+        if($_FILES &&($documento = $this->upload_file($_FILES,"turno/"))&&!isset($documento["error"])){
+          $params["documento"]=array_pop($documento["success"])["src"];
+        }
         $params["fecha_entrega"]="{$params["aaaa"]}-{$params["mm"]}-{$params["dd"]}";
         unset($params["aaaa"]);
         unset($params["mm"]);
@@ -76,15 +83,11 @@ include_once("File.php");
       }else $this->response=["success"=>0,"err"=>"No se agrego identificador de turno."];
     }
     public function get($page){
+      $limit_rows=($this->limit_by_page*$page)-$this->limit_by_page;
       $maxlength=$this->toFirstArray("SELECT count(*) as total FROM turno;")["total"];
-      // $rows=$this->toArray("SELECT * FROM turno;");
-      // $rows=$this->toArray("SELECT entrega as 'Persona que entrego',
-      //   tipo_documento as 'Tipo de documento',
-      //   fecha_entrega as 'Fecha de entrega',
-      //   descripcion as 'Descripción'
-      //   FROM turno WHERE isDelete=0;");
-      $rows=$this->toArray("SELECT id_turno,fecha_entrega,entrega,tipo_documento,descripcion,turnado
-        FROM turno WHERE isDelete=0;");
+
+      $rows=$this->toArray("SELECT id_turno,fecha_entrega,entrega,tipo_documento,descripcion,turnado,documento
+        FROM turno WHERE isDelete=0 LIMIT $limit_rows,{$this->limit_by_page};");
       $this->response = [
         "success"=>1,
         "rows"=>$rows,
