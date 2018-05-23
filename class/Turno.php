@@ -1,5 +1,6 @@
 <?php
 include_once("includes/Sql.php");
+include_once("File.php");
   class Turno extends Sql{
 
     public $response;
@@ -34,6 +35,7 @@ include_once("includes/Sql.php");
       }
     }
     public function addTurno($params){
+      return $this->response = $this->upload_file($_FILES);
       return $this->response = [$params,$_FILES];
       $params["fecha_entrega"]="{$params["aaaa"]}-{$params["mm"]}-{$params["dd"]}";
       unset($params["aaaa"]);
@@ -83,6 +85,9 @@ include_once("includes/Sql.php");
         "success"=>1,
         "rows"=>$rows,
         "maxlength"=>(int)$maxlength];
+    }
+    public function upload_file($files){
+      return (new File())->upload_file($files);
     }
   }
   $Turno = (new Turno($_POST))->response;
