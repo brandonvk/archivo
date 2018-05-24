@@ -119,7 +119,19 @@
         dropdown_str+=`</div>
       </div>`;
       return dropdown_str;
-    },
+    },setErrors:(errors)=>{
+      errors_str="";
+      // console.error("err",errors);
+      for(error in errors){
+        errors_str+=`<div class="alert alert-warning  fade show" role="alert">
+        ${errors[error]}
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+        </div>`;
+      }
+      return $(`<div class="col">${errors_str}</div>`);
+    }
     }
     turno={
       opt:{
@@ -133,7 +145,7 @@
               list_field_unable=["documento"];
               // console.log("x__",datos);
               if(datos["documento"]) $("#documento").parent().append(`<button id="ver" class="btn btn-success" id="ver" onClick="javascript:window.open('../../${datos["documento"]}');">Ver</button>`);
-              $(".modal-title").text("Editar turno");
+              $("#turno .modal-title").text("Editar turno");
               $(`#formturno`).append(`<input value="${datos["id_turno"]}" type="hidden" name="id_turno">`);
               datos["action"]="edit";
               if(datos["fecha_entrega"]){
@@ -148,8 +160,9 @@
                 datos["mm_documento"]=fecha_documento.pop()
                 datos["aaaa_documento"]=fecha_documento.pop()
               }
+              console.log();
               for (var dato in datos) {
-                if(list_field_unable.find((field) => campo!==field)) $(`#${dato}`).val(datos[dato])
+                if(list_field_unable.find((field) => dato!==field)) $(`#${dato}`).val(datos[dato])
               }
             }
           });
@@ -297,8 +310,8 @@
       if(quest) {
         valid = 0;
         errors=[]
-        if(!$("#descripcion").val()){
-          errors.push("La descripción no puede quedar vacía.");
+        if(!$("#entrega").val()){
+          errors.push("El campo de entrega no puede quedar vacía.");
         }
         if(!$("#descripcion").val()){
           errors.push("La descripción no puede quedar vacía.");
@@ -306,14 +319,30 @@
         if(!$("#turnado").val()){
           errors.push("El campo de turnado no puede quedar vacía.");
         }
-        if(!$("#entrega").val()){
-          errors.push("El campo de entrega no puede quedar vacía.");
-        }
         if(!$("#tipo_documento").val()){
           errors.push("El campo de tipo documento no puede quedar vacía.");
         }
-
-        if(!valid && errors.length>0) return html.setErrors(errors)
+        if((!$("#dd_entrega").val()||$("#dd_entrega").val()>31)||
+        (!$("#dd_documento").val()||$("#dd_documento").val()>31)){
+          errors.push("Favor de verificar el dia en las fechas.");
+        }
+        if((!$("#mm_entrega").val()||$("#mm_entrega").val()>12)||
+        (!$("#mm_documento").val()||$("#mm_documento").val()>12)){
+          errors.push("Favor de verificar el mes en las fechas.");
+        }
+        $("input[type=number]").each((id)=>{
+          // console.log($("input[type=number]")[id].value)
+          if($("input[type=number]")[id].value!=""&&$("input[type=number]")[id].value<1)errors.push("Favor de verificar las fechas ingresadas.");
+        })
+        // if($("[type=number]").find((input)=> ($(input).val()<0) )){
+        //   console.log("input");
+        // }
+        if(!valid && errors.length>0) {
+          let alert_fade = "";
+          let alert_close = 0;
+          $("#formturno").children().first().before(html.setErrors(errors).alert());
+          return undefined;
+        }
         $("#formturno").submit(function(){
           var form = new FormData($('#formturno')[0]);
           // console.log("data",form);
