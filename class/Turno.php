@@ -43,10 +43,15 @@ include_once("File.php");
       if(!isset($documento["error"])){
         $params["documento"]=array_pop($documento["success"])["src"];
       }else if(isset($documento["error"])) $this->response = ["success"=>0,"err"=>(isset($documento["error"])?$documento["error"]:$this->response)];
-        $params["fecha_entrega"]="{$params["aaaa"]}-{$params["mm"]}-{$params["dd"]}";
-        unset($params["aaaa"]);
-        unset($params["mm"]);
-        unset($params["dd"]);
+      $params["fecha_entrega"]="{$params["aaaa_entrega"]}-{$params["mm_entrega"]}-{$params["dd_entrega"]}";
+      unset($params["aaaa_entrega"]);
+      unset($params["mm_entrega"]);
+      unset($params["dd_entrega"]);
+
+      $params["fecha_documento"]="{$params["aaaa_documento"]}-{$params["mm_documento"]}-{$params["dd_documento"]}";
+      unset($params["aaaa_documento"]);
+      unset($params["mm_documento"]);
+      unset($params["dd_documento"]);
         // $this->response = $params;
         if($this->insert("turno",$params)){
           $this->response = ["success"=>1,"msg"=>"Se inserto correctamente el registro."];
@@ -57,13 +62,20 @@ include_once("File.php");
 
     public function editTurno($params){
       if(isset($params["id_turno"])){
+
         if($_FILES &&($documento = $this->upload_file($_FILES,"turno/"))&&!isset($documento["error"])){
           $params["documento"]=array_pop($documento["success"])["src"];
         }
-        $params["fecha_entrega"]="{$params["aaaa"]}-{$params["mm"]}-{$params["dd"]}";
-        unset($params["aaaa"]);
-        unset($params["mm"]);
-        unset($params["dd"]);
+
+        $params["fecha_entrega"]="{$params["aaaa_entrega"]}-{$params["mm_entrega"]}-{$params["dd_entrega"]}";
+        unset($params["aaaa_entrega"]);
+        unset($params["mm_entrega"]);
+        unset($params["dd_entrega"]);
+
+        $params["fecha_documento"]="{$params["aaaa_documento"]}-{$params["mm_documento"]}-{$params["dd_documento"]}";
+        unset($params["aaaa_documento"]);
+        unset($params["mm_documento"]);
+        unset($params["dd_documento"]);
         $idTurno=$params["id_turno"];
         unset($params["id_turno"]);
 
@@ -86,17 +98,17 @@ include_once("File.php");
 
       $limit_rows=($this->limit_by_page*$page)-$this->limit_by_page;
       $filter="";
-      if($search){
+      if($search=preg_replace('/"\'\&\|/i','',$search)){
         $filter=" && (entrega like '%$search%' || tipo_documento like '%$search%' || turnado like '%$search%')";
       }
       $maxlength=$this->toFirstArray("SELECT count(*) as total FROM turno WHERE isDelete=0 $filter;")["total"];
 
-      $rows=$this->toArray("SELECT id_turno,fecha_entrega,entrega,tipo_documento,descripcion,turnado,documento
+      $rows=$this->toArray("SELECT id_turno,fecha_entrega,entrega,tipo_documento,descripcion,turnado,documento,fecha_documento
         FROM turno WHERE isDelete=0 $filter LIMIT $limit_rows,{$this->limit_by_page};");
       $this->response = [
         "success"=>1,
         "rows"=>$rows,
-        "maxlength"=>(int)$maxlength];
+        "maxlength"=>(int)$maxlength,"filter"=>$filter];
     }
     public function upload_file($files,$dir){
       return (new File())->upload_file($files,$dir);

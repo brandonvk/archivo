@@ -1,1 +1,3 @@
 ALTER TABLE `turno` ADD `documento` VARCHAR(100) NOT NULL AFTER `turnado`;
+
+ALTER TABLE `turno` ADD `fecha_documento` DATE NOT NULL AFTER

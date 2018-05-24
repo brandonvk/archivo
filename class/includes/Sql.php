@@ -44,10 +44,12 @@ class Sql extends Credentials{
     $rows=$this->sql->query($this->getSql=$query);
 
     $result = [];
-    while($row = $rows->fetch_assoc()){
-      $result[]=$row;
+    if($rows){
+      while($row = $rows->fetch_assoc()){
+        $result[]=$row;
+      }
+      $this->dissconect();  
     }
-    $this->dissconect();
     return $result;
   }
   public function toFirstArray($query){
