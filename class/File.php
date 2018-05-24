@@ -28,7 +28,7 @@ public $path = "";
             $res["success"][]=["name"=>"El archivo se subio con éxito.","src"=>substr($file_name,strlen($this->path))];
         }else $res["error"][]=["name"=>"Ocurrio un erro al intentar subir el archivo F(300)."];
       }else $res["error"][]=["name"=>"El archivo que intento subir no esta permitido por el sistema {$file["name"]} F(200)","ext"=>$ext];
-    }else $res["error"][]=["name"=>"Ocurrio un error al subir el archivo {$file["name"]} F(100)."];
+    }else if($file["name"]) $res["error"][]=["name"=>"Ocurrio un error al subir el archivo {$file["name"]} F(100)."];
     }
     return $res;
   }

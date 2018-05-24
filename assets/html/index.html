@@ -28,6 +28,16 @@
       .campoFecha{
         /* margin-left: 2em; */
       }
+      .header{
+        background-image: url("../img/mosaico2.jpg");
+        background-size: 10em;
+        color:white;
+        border-top: 3px solid black;
+        background-clip: padding-box;
+        /* border-radius: 0.5em; */
+        /* margin-left: 15px; */
+        /* margin-right: -15px!important; */
+      }
     </style>
   </head>
   <body>
@@ -35,7 +45,7 @@
       <!-- <img src="../css/plugin/iconic-bootstrap/svg/cog.svg" alt="icon name"> -->
       <!-- <span class="oi oi-icon-star" title="icon star" aria-hidden="true"></span> -->
 
-      <div class="col col-md-12 col-xs-12 col-sm-12 col-lg-12">
+      <div class="col col-md-12 col-xs-12 col-sm-12 header">
         <!-- <span class="oi oi-data-transfer-cog"></span> -->
         <h2 class="titulo">Turnado</h2>
       </div>
@@ -119,7 +129,7 @@
         dropdown_str+=`</div>
       </div>`;
       return dropdown_str;
-    },setErrors:(errors)=>{
+    },setAlerts:(errors)=>{
       errors_str="";
       // console.error("err",errors);
       for(error in errors){
@@ -224,7 +234,7 @@
         $(".main .table").html(`<table class="table">
           <thead><tr><td>${table_header.join("</td><td>")}</td></tr></thead>
           <tbody>${table_body}</tbody></table>`);
-      },page:(maxlength,page_by_view,set_pag) => {
+      },page:(maxlength,page_by_view,set_pag,filter) => {
         pag_total=Math.ceil(maxlength/page_by_view);
         page_available=3;//paginas que se puedan visualizar en el tablero
         page_view=Math.ceil(page_available/2);
@@ -233,13 +243,13 @@
         // console.log(page_view,set_pag,page_min,view,maxlength);
         page_str=`<nav aria-label="Paginador turno"><ul class="pagination text-center">`;
         page_str_left=(set_pag-1>0)?"":"disabled";
-        page_str+=`<li class="page-item ${page_str_left}"><a  class="page-link" onClick="turno.load(${set_pag-1})" href="javascript:;"><</li>`;
+        page_str+=`<li class="page-item ${page_str_left}"><a  class="page-link" onClick="turno.load(${set_pag-1},${filter})" href="javascript:;"><</li>`;
         for (i; i < (page_min<0?0:page_min)+page_available; i++) {
           page_active=(set_pag==i+1)?"active":"";
-          if(i>-1 && (i+1)<=pag_total)page_str+=`<li class="page-item ${page_active}"><a class="page-link" onClick="turno.load(${i+1})" href="javascript:;">${i+1}</li>`;
+          if(i>-1 && (i+1)<=pag_total)page_str+=`<li class="page-item ${page_active}"><a class="page-link" onClick="turno.load(${i+1},${filter})" href="javascript:;">${i+1}</li>`;
         }
         page_str_rigth=(set_pag+1<=pag_total)?"":"disabled";
-        page_str+=`<li class="page-item ${page_str_rigth}"><a  class="page-link" onClick="turno.load(${set_pag+1})" href="javascript:;">></li>`;
+        page_str+=`<li class="page-item ${page_str_rigth}"><a  class="page-link" onClick="turno.load(${set_pag+1},${filter})" href="javascript:;">></li>`;
         page_str+="</ul></nav>";
         $(".main .page").html(`${page_str}`);
       },load:(pag,search) => {
@@ -247,7 +257,7 @@
           if(err) return console.error(err);
           turno.rows=rows.rows;
           turno.table(rows.rows);
-          turno.page(rows.maxlength,10,pag);
+          turno.page(rows.maxlength,10,pag,search);
         })
       }
     }
@@ -340,7 +350,7 @@
         if(!valid && errors.length>0) {
           let alert_fade = "";
           let alert_close = 0;
-          $("#formturno").children().first().before(html.setErrors(errors).alert());
+          $("#formturno").children().first().before(html.setAlerts(errors).alert());
           return undefined;
         }
         $("#formturno").submit(function(){
@@ -349,14 +359,23 @@
           $.ajax({
             url:"../../class/Turno.php",
             type:'post',
-            dataType: 'text',
+            dataType: 'json',
             contentType: false,
             processData: false,
             data:form,
             success:(succ)=>{
-              console.log(null,JSON.parse(succ));
+              if(!succ||!succ.success){
+                err=[];
+                // console.log("succ.err",succ,succ.err);
+                for(error in succ.err){
+                  // console.log(succ.err[error],succ.err[error].name);
+                  err.push(`${succ.err[error].name}`);
+                }
+                return $("#formturno").children().first().before(html.setAlerts(err).alert());
+              }
               turno.load(1);
               $(`#turno`).modal("hide");
+              return $(".main").children().first().before(html.setAlerts(err).alert());
               // return call(null,JSON.parse(succ));
             },error:(err) => {
               console.log(err);

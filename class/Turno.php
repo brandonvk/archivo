@@ -42,7 +42,7 @@ include_once("File.php");
       $documento = $this->upload_file($_FILES,"turno/");
       if(!isset($documento["error"])){
         $params["documento"]=array_pop($documento["success"])["src"];
-      }else if(isset($documento["error"])) $this->response = ["success"=>0,"err"=>(isset($documento["error"])?$documento["error"]:$this->response)];
+      }else if(isset($documento["error"])) return $this->response = ["success"=>0,"err"=>(isset($documento["error"])?$documento["error"]:$this->response)];
       $params["fecha_entrega"]="{$params["aaaa_entrega"]}-{$params["mm_entrega"]}-{$params["dd_entrega"]}";
       unset($params["aaaa_entrega"]);
       unset($params["mm_entrega"]);
@@ -65,8 +65,7 @@ include_once("File.php");
 
         if($_FILES &&($documento = $this->upload_file($_FILES,"turno/"))&&!isset($documento["error"])){
           $params["documento"]=array_pop($documento["success"])["src"];
-        }
-
+        }else if(isset($documento["error"])) return $this->response = ["success"=>0,"err"=>(isset($documento["error"])?$documento["error"]:$this->response)];
         $params["fecha_entrega"]="{$params["aaaa_entrega"]}-{$params["mm_entrega"]}-{$params["dd_entrega"]}";
         unset($params["aaaa_entrega"]);
         unset($params["mm_entrega"]);
@@ -98,8 +97,11 @@ include_once("File.php");
 
       $limit_rows=($this->limit_by_page*$page)-$this->limit_by_page;
       $filter="";
-      if($search=preg_replace('/"\'\&\|/i','',$search)){
-        $filter=" && (entrega like '%$search%' || tipo_documento like '%$search%' || turnado like '%$search%')";
+      if($search=trim(preg_replace('/"|\'|\&|\||(AND)|(OR)/i','',$search))){
+        if(preg_match('/([0-9]{2}\/[0-9]{2}\/[0-9]{4})|([0-9]{2}-[0-9]{2}-[0-9]{4})|([0-9]{4}-[0-9]{2}-[0-9]{2})/i',$search)){
+          $fecha_str = (date("Y-m-d",strtotime($search)));
+          $filter=" && (fecha_entrega='$fecha_str'||fecha_documento='$fecha_str')";
+        }else $filter=" && (entrega like '%$search%' || tipo_documento like '%$search%' || turnado like '%$search%')";
       }
       $maxlength=$this->toFirstArray("SELECT count(*) as total FROM turno WHERE isDelete=0 $filter;")["total"];
 
@@ -108,7 +110,7 @@ include_once("File.php");
       $this->response = [
         "success"=>1,
         "rows"=>$rows,
-        "maxlength"=>(int)$maxlength,"filter"=>$filter];
+        "maxlength"=>(int)$maxlength];
     }
     public function upload_file($files,$dir){
       return (new File())->upload_file($files,$dir);

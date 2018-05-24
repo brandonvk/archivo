@@ -3,9 +3,9 @@
   -opcion de borrar
   -opcion de editar
 -paginador
-*validacion del formulario
-*alerta de hechos
+-validacion del formulario
+**alerta de hechos
 -filtro de busqueda
-filtro de fecha
+-filtro de fecha
 diseño del sitio
 definir htaccess
