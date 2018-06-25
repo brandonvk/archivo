@@ -1,3 +1,9 @@
 ALTER TABLE `turno` ADD `documento` VARCHAR(100) NOT NULL AFTER `turnado`;
 
 ALTER TABLE `turno` ADD `fecha_documento` DATE NOT NULL AFTER
+
+create table contrato( id_contrato int(11) not null PRIMARY key AUTO_INCREMENT, cve_direccion char(5) not null, id_oficio int(11) not null, empresa varchar(250), fecha_inicio date, fecha_fin date, isDelete int(1) DEFAULT 0, FOREIGN KEY (cve_direccion) references direccion(cve_direccion), FOREIGN KEY (id_oficio) REFERENCES oficio(id_oficio))
+
+alter table direccion add isDelete int(1) default 0
+
+alter table contenedor add isDelete int(1) default 0
