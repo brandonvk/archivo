@@ -229,7 +229,7 @@
             if(table_header.indexOf(table_lan[campo])==-1&&table_lan[campo]) table_header.push(table_lan[campo])
             if(table_lan[campo])table_body+=`<td>${rows[row][campo]}</td>`;
           }
-          table_body+=`<td><button class="btn btn-sm btn-success ${rows[row]["documento"]?"":"disabled"}" id="ver" onClick="javascript:window.open('../../${rows[row]["documento"]}');">Ver</button></td>`;
+          table_body+=`<td><button ${rows[row]["documento"]?"":"disabled"} class="btn btn-sm btn-success ${rows[row]["documento"]?"":"disabled"}" id="ver" onClick="javascript:window.open('../../${rows[row]["documento"]}');">Ver</button></td>`;
           table_body+=`</tr>`;
         }
         table_header.push("Documento");
