@@ -9,3 +9,4 @@
 -filtro de fecha
 diseño del sitio
 definir htaccess
+validar que exista el archivo
