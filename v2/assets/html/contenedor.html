@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Catálogo de Contenedores</title>
+    <link rel="stylesheet" href="../css/plugin/bootstrap/bootstrap.min.css" >
+    <link rel="stylesheet" href="../css/plugin/iconic-bootstrap/font/css/open-iconic-bootstrap.min.css" >
+    <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/open-iconic/1.1.0/font/css/open-iconic-bootstrap.min.css" /> -->
+    <style media="screen">
+      body{
+        margin-left: 1em;
+        margin-right:  1em;
+      }
+      div{
+        margin-top:0.5em;
+      }
+      .titulo{
+        text-align: center;
+      }
+      .agregar{
+        text-align: right;
+        /* margin-right:0px; */
+      }
+      .formModal{
+        margin-left: 1em;
+        margin-right:  1em;
+      }
+      .campoFecha{
+        /* margin-left: 2em; */
+      }
+      .header{
+        background-image: url("../img/mosaico2.jpg");
+        background-size: 10em;
+        color:white;
+        border-top: 3px solid black;
+        background-clip: padding-box;
+        /* border-radius: 0.5em; */
+        /* margin-left: 15px; */
+        /* margin-right: -15px!important; */
+      }
+    </style>
+  </head>
+  <body>
+    <div class="row">
+      <!-- <img src="../css/plugin/iconic-bootstrap/svg/cog.svg" alt="icon name"> -->
+      <!-- <span class="oi oi-icon-star" title="icon star" aria-hidden="true"></span> -->
+
+      <div class="col-12 header">
+        <!-- <span class="oi oi-data-transfer-cog"></span> -->
+        <h2 class="titulo">´Catálogo de Contenedores</h2>
+      </div>
+
+
+      <div class="col-6">
+      <div class="input-group">
+        <input id="search_field" type="text" class="form-control" placeholder="Buscar..." aria-label="Input group example" aria-describedby="btnGroupAddon">
+        <button id="search" class="btn btn-primary" type="button" name="button">Buscar</button>
+      </div>
+      </div>
+
+      <div class="col-6 text-right">
+        <button id="addContenedor" class="btn btn-success " type="button" name="button" >Agregar</button>
+      </div>
+
+
+      <div class="col col-md-12 col-xs-12 col-sm-12 main">
+        <div class="col col-md-12 col-xs-12 col-sm-12 table">
+
+        </div>
+        <div class="col col-md-12 col-xs-12 col-sm-12 page text-center">
+
+        </div>
+      </div>
+    </div>
+
+  </body>
+  <script type="text/javascript" src="../js/jquery-3.3.1.js">  </script>
+  <script type="text/javascript" src="../js/popper.min.js">  </script>
+  <script type="text/javascript" src="../js/bootstrap.min.js">  </script>
+  <script type="text/javascript">
+
+    let html={
+      modal_head:(id,title) => {
+        return head=`<div class="modal fade" id="${id}" tabindex="-1" role="dialog" aria-labelledby="${id}Label" aria-hidden="true">`+
+          '<div class="modal-dialog" role="document">'+
+            '<div class="modal-content">'+
+              '<div class="modal-header">'+
+                `<h5 class="modal-title" id="${id}Label">${title}</h5>`+
+                '<button type="button" class="close" data-dismiss="modal" aria-label="Close">'+
+                  '<span aria-hidden="true">&times;</span>'+
+                '</button>'+
+              '</div>';
+      },modal_foot:(id)=>{
+        return foot='<div class="modal-footer">'+
+          `<button id="${id}Cancelar" type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>`+
+          `<button id="${id}Aceptar" type="button" class="btn btn-primary">Aceptar</button>`+
+        '</div>';
+      },modal_form:(id,title,html_content) => `${html.modal_head(id,title)}${html_content}${html.modal_foot(id)}`,
+      modal_alert:(id,title,html_content) => `${html.modal_head(id,title)}${html_content}${html.modal_foot(id)}`,
+      modal:{},
+      modal_add:(id,title,type,html_content,cll)=>{
+        if(html.modal[id]){
+          html.modal_show(id)
+        }else{
+          if (type=="form") html.modal[id]=html.modal_form(id,title,html_content,cll);
+          if (type=="alert") html.modal[id]=html.modal_alert(id,title,html_content,cll);
+          $("body").append(html.modal[id]);
+          $(`#${id}Aceptar`).click((e)=>cll(true));
+          $(`#${id}Cancelar`).click((e)=>cll(false));
+        }
+
+        // $("body").load();
+        return this;
+      },modal_show:(id,cll)=>{
+        // console.log(html.modal[id]);
+        cll && cll();
+        $(`#${id}`).modal("show");
+      },dropdown:(opt,id)=>{
+        let dropdown_str=`<div class="dropdown">
+        <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          <span class="oi" data-glyph="icon-name" title="icon name" aria-hidden="true"></span>
+        </button>
+        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">`;
+        for (var opt_key in opt) {
+            dropdown_str+=`<a class="dropdown-item" href="#" onClick="contenedor.opt['${opt_key}'](${id})">${opt_key}</a>`;
+        }
+        dropdown_str+=`</div>
+      </div>`;
+      return dropdown_str;
+    },setAlerts:(errors)=>{
+      errors_str="";
+      // console.error("err",errors);
+      for(error in errors){
+        errors_str+=`<div class="alert alert-warning  fade show" role="alert">
+        ${errors[error]}
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+        </div>`;
+      }
+      return $(`<div class="col">${errors_str}</div>`);
+    }
+    }
+    contenedor={
+      opt:{
+        editar:(id)=>{
+          // console.log("editar",id,contenedor.rows[id]);
+          html.modal_show("contenedor",()=>{
+
+            $(`#formcontenedor`)[0].reset();
+            if(datos=contenedor.rows[id]){
+              list_field_unable=[];
+              // console.log("x__",datos);
+              $(`#formcontenedor`).append(`<input value="${datos["id_contenedor"]}" type="hidden" name="id_contenedor">`);
+              $("#contenedor .modal-title").text("Editar Dirección");
+              datos["action"]="edit";
+
+              console.log();
+              for (var dato in datos) {
+                // if(list_field_unable.find((field) => dato!==field))
+                 $(`#${dato}`).val(datos[dato])
+              }
+            }
+          });
+        },eliminar:(id)=>{
+          html.modal_add("elimcontenedor","Eliminar contenedor",'alert','¿Esta seguro que desea eliminar este registro?',(rs)=>{
+            console.log("quiso eliminar?",rs);
+            if(rs){
+              $.ajax({
+                url:"../../class/Contenedor.php",
+                type:'post',
+                data:{
+                  action:"delete",
+                  token:"Asndvdha$ua334baxhd.nshshqdlfg",
+                  id:contenedor.rows[id].id_contenedor
+                },success:(rows)=>{
+                  $(`#elimcontenedor`).modal("hide");
+                  return contenedor.load(1);
+                },error:(err) => {
+                  $(`#elimcontenedor`).modal("hide");
+                  return console.error("Error al eliminar",err);
+                }
+              })
+            }
+          });
+          html.modal_show("elimcontenedor")
+        }
+      },
+      get:(page,search,call)=>{
+        $.ajax({
+          url:"../../class/Contenedor.php",
+          type:'post',
+          data:{
+            action:"getRows",
+            page,
+            search
+          },success:(rows)=>{
+            return call(null,JSON.parse(rows));
+          },error:(err) => {
+            return call(err);
+          }
+        })
+      },table:(rows)=>{
+        let table_header=['Opciones'];
+
+        let table_lan={
+          identificador:"Nombre del contenedor",
+          tipo_contenedor:"Tipo de contenedor"
+        };
+
+        let table_body="";
+
+        for(row in rows){
+          table_body+=`<tr>`;
+          table_body+=`<td>${html.dropdown(contenedor.opt,row)}</td>`
+          for(campo in rows[row]){
+            // console.log(campo);
+            if(table_header.indexOf(table_lan[campo])==-1&&table_lan[campo]) table_header.push(table_lan[campo])
+            if(table_lan[campo])table_body+=`<td>${rows[row][campo]}</td>`;
+          }
+          table_body+=`</tr>`;
+        }
+        $(".main .table").html(`<table class="table">
+          <thead><tr><td>${table_header.join("</td><td>")}</td></tr></thead>
+          <tbody>${table_body}</tbody></table>`);
+      },page:(maxlength,page_by_view,set_pag,filter) => {
+        pag_total=Math.ceil(maxlength/page_by_view);
+        page_available=3;//paginas que se puedan visualizar en el tablero
+        page_view=Math.ceil(page_available/2);
+        // console.log(page_view,page_available);
+        i=((page_min = set_pag - page_view)<1)?0:page_min;
+        // console.log(page_view,set_pag,page_min,view,maxlength);
+        page_str=`<nav aria-label="Paginador contenedor"><ul class="pagination text-center">`;
+        page_str_left=(set_pag-1>0)?"":"disabled";
+        page_str+=`<li class="page-item ${page_str_left}"><a  class="page-link" onClick="contenedor.load(${set_pag-1},${filter})" href="javascript:;"><</li>`;
+        for (i; i < (page_min<0?0:page_min)+page_available; i++) {
+          page_active=(set_pag==i+1)?"active":"";
+          if(i>-1 && (i+1)<=pag_total)page_str+=`<li class="page-item ${page_active}"><a class="page-link" onClick="contenedor.load(${i+1},${filter})" href="javascript:;">${i+1}</li>`;
+        }
+        page_str_rigth=(set_pag+1<=pag_total)?"":"disabled";
+        page_str+=`<li class="page-item ${page_str_rigth}"><a  class="page-link" onClick="contenedor.load(${set_pag+1},${filter})" href="javascript:;">></li>`;
+        page_str+="</ul></nav>";
+        $(".main .page").html(`${page_str}`);
+      },load:(pag,search) => {
+        contenedor.get(pag,search,(err,rows) => {
+          if(err) return console.error(err);
+          contenedor.rows=rows.rows;
+          contenedor.table(rows.rows);
+          contenedor.page(rows.maxlength,10,pag,search);
+        })
+      }
+    }
+    contenedor.load(1);
+    html.modal_add("contenedor","Agregar contenedor",'form',
+    `<form id="formcontenedor" class="formModal" action="javascript:;">
+    <div class="form-group">
+        <label>Nombre del contenedor:</label>
+      <input id="identificador" name="identificador" type="text" class="form-control">
+    </div>
+    <div class="form-group">
+      <label>Tipo de contenedor:</label>
+      <input id="tipo_contenedor" name="tipo_contenedor" type="text" class="form-control">
+    </div>
+    <input id="action" name="action" type="hidden" value="add" class="form-control">
+    </form>
+    `,(quest)=>{
+      if(quest) {
+        valid = 0;
+        errors=[]
+        if(!$("#identificador").val()){
+          errors.push("El nombre de tu contenedor no puede quedar vació.");
+        }
+        if(!$("#tipo_contenedor").val()){
+          errors.push("El tipo del contenedor no puede quedar vacío.");
+        }
+        if(!valid && errors.length>0) {
+          let alert_fade = "";
+          let alert_close = 0;
+          $("#formcontenedor").children().first().before(html.setAlerts(errors).alert());
+          return undefined;
+        }
+        $("#formcontenedor").submit(function(){
+          var form = new FormData($('#formcontenedor')[0]);
+          // console.log("data",form);
+          $.ajax({
+            url:"../../class/Contenedor.php",
+            type:'post',
+            dataType: 'json',
+            contentType: false,
+            processData: false,
+            data:form,
+            success:(succ)=>{
+              err=[];
+              if(!succ||!succ.success){
+                // console.log("succ.err",succ,succ.err);
+                for(error in succ.err){
+                  // console.log(succ.err[error],succ.err[error].name);
+                  err.push(`${succ.err[error].name}`);
+                }
+                return $("#formcontenedor").children().first().before(html.setAlerts(err).alert());
+              }
+              contenedor.load(1);
+              $(`#contenedor`).modal("hide");
+              return $(".main").children().first().before(html.setAlerts(err).alert());
+              // return call(null,JSON.parse(succ));
+            },error:(err) => {
+              console.log(err);
+              // return call(err);
+            }
+          })
+        }());
+        // $("#contenedor").modal("hide")
+      }
+    })
+
+    $("#addContenedor").click((e)=>html.modal_show("contenedor",()=>{
+      $(`#formcontenedor`)[0].reset();
+      $("[name=id_contenedor]").remove();
+      $(`#formcontenedor #ver`).remove();
+      $("[name=action]").val("add");
+    }))
+
+    $("#search").click((e)=>{
+      if(!$("#search_field").val()) return "";
+      // console.log("buscando",$("#clean"));
+      contenedor.load(1,$("#search_field").val())
+      if(!$("#clean")[0])$("#search_field").parent().append("<button id='clean' class='btn btn-warning'>Limpiar</button>");
+      $("#clean").click((e)=>{
+        $("#search_field").val("")
+        contenedor.load(1)
+        $("#clean").remove()
+      })
+    })
+
+
+  </script>
+</html>

@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Turnado</title>
+    <link rel="stylesheet" href="../css/plugin/bootstrap/bootstrap.min.css" >
+    <link rel="stylesheet" href="../css/plugin/iconic-bootstrap/font/css/open-iconic-bootstrap.min.css" >
+    <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/open-iconic/1.1.0/font/css/open-iconic-bootstrap.min.css" /> -->
+    <style media="screen">
+      body{
+        margin-left: 1em;
+        margin-right:  1em;
+      }
+      div{
+        margin-top:0.5em;
+      }
+      .titulo{
+        text-align: center;
+      }
+      .agregar{
+        text-align: right;
+        /* margin-right:0px; */
+      }
+      .formModal{
+        margin-left: 1em;
+        margin-right:  1em;
+      }
+      .campoFecha{
+        /* margin-left: 2em; */
+      }
+      .header{
+        background-image: url("../img/mosaico2.jpg");
+        background-size: 10em;
+        color:white;
+        border-top: 3px solid black;
+        background-clip: padding-box;
+        /* border-radius: 0.5em; */
+        /* margin-left: 15px; */
+        /* margin-right: -15px!important; */
+      }
+    </style>
+  </head>
+  <body>
+    <div class="row">
+      <!-- <img src="../css/plugin/iconic-bootstrap/svg/cog.svg" alt="icon name"> -->
+      <!-- <span class="oi oi-icon-star" title="icon star" aria-hidden="true"></span> -->
+
+      <div class="col-12 header">
+        <!-- <span class="oi oi-data-transfer-cog"></span> -->
+        <h2 class="titulo">Turnado</h2>
+      </div>
+
+      <div class="col-6">
+      <div class="input-group">
+        <input id="search_field" type="text" class="form-control" placeholder="Buscar..." aria-label="Input group example" aria-describedby="btnGroupAddon">
+        <button id="search" class="btn btn-primary" type="button" name="button">Buscar</button>
+      </div>
+      </div>
+
+      <div class="col-6 text-right">
+        <button id="addTurno" class="btn btn-success " type="button" name="button" >Agregar</button>
+      </div>
+
+
+      <div class="col-12 main">
+        <div class="col-12 table">
+
+        </div>
+        <div class="col-12 page text-center">
+
+        </div>
+      </div>
+    </div>
+
+  </body>
+  <script type="text/javascript" src="../js/jquery-3.3.1.js">  </script>
+  <script type="text/javascript" src="../js/popper.min.js">  </script>
+  <script type="text/javascript" src="../js/bootstrap.min.js">  </script>
+  <script type="text/javascript">
+
+    let html={
+      modal_head:(id,title) => {
+        return head=`<div class="modal fade" id="${id}" tabindex="-1" role="dialog" aria-labelledby="${id}Label" aria-hidden="true">`+
+          '<div class="modal-dialog" role="document">'+
+            '<div class="modal-content">'+
+              '<div class="modal-header">'+
+                `<h5 class="modal-title" id="${id}Label">${title}</h5>`+
+                '<button type="button" class="close" data-dismiss="modal" aria-label="Close">'+
+                  '<span aria-hidden="true">&times;</span>'+
+                '</button>'+
+              '</div>';
+      },modal_foot:(id)=>{
+        return foot='<div class="modal-footer">'+
+          `<button id="${id}Cancelar" type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>`+
+          `<button id="${id}Aceptar" type="button" class="btn btn-primary">Aceptar</button>`+
+        '</div>';
+      },modal_form:(id,title,html_content) => `${html.modal_head(id,title)}${html_content}${html.modal_foot(id)}`,
+      modal_alert:(id,title,html_content) => `${html.modal_head(id,title)}${html_content}${html.modal_foot(id)}`,
+      modal:{},
+      modal_add:(id,title,type,html_content,cll)=>{
+        if(html.modal[id]){
+          html.modal_show(id)
+        }else{
+          if (type=="form") html.modal[id]=html.modal_form(id,title,html_content,cll);
+          if (type=="alert") html.modal[id]=html.modal_alert(id,title,html_content,cll);
+          $("body").append(html.modal[id]);
+          $(`#${id}Aceptar`).click((e)=>cll(true));
+          $(`#${id}Cancelar`).click((e)=>cll(false));
+        }
+
+        // $("body").load();
+        return this;
+      },modal_show:(id,cll)=>{
+        // console.log(html.modal[id]);
+        cll && cll();
+        $(`#${id}`).modal("show");
+      },dropdown:(opt,id)=>{
+        let dropdown_str=`<div class="dropdown">
+        <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          <span class="oi" data-glyph="icon-name" title="icon name" aria-hidden="true"></span>
+        </button>
+        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">`;
+        for (var opt_key in opt) {
+            dropdown_str+=`<a class="dropdown-item" href="#" onClick="turno.opt['${opt_key}'](${id})">${opt_key}</a>`;
+        }
+        dropdown_str+=`</div>
+      </div>`;
+      return dropdown_str;
+    },setAlerts:(errors)=>{
+      errors_str="";
+      // console.error("err",errors);
+      for(error in errors){
+        errors_str+=`<div class="alert alert-warning  fade show" role="alert">
+        ${errors[error]}
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+        </div>`;
+      }
+      return $(`<div class="col">${errors_str}</div>`);
+    }
+    }
+    turno={
+      opt:{
+        editar:(id)=>{
+          // console.log("editar",id,turno.rows[id]);
+          html.modal_show("turno",()=>{
+
+            $(`#formturno`)[0].reset();
+            $(`#formturno #ver`).remove();
+            if(datos=turno.rows[id]){
+              list_field_unable=["documento"];
+              // console.log("x__",datos);
+              if(datos["documento"]) $("#documento").parent().append(`<button id="ver" class="btn btn-success" id="ver" onClick="javascript:window.open('../../${datos["documento"]}');">Ver</button>`);
+              $("#turno .modal-title").text("Editar turno");
+              $(`#formturno`).append(`<input value="${datos["id_turno"]}" type="hidden" name="id_turno">`);
+              datos["action"]="edit";
+              if(datos["fecha_entrega"]){
+                let fecha_entrega = datos["fecha_entrega"].split("-")
+                datos["dd_entrega"]=fecha_entrega.pop()
+                datos["mm_entrega"]=fecha_entrega.pop()
+                datos["aaaa_entrega"]=fecha_entrega.pop()
+              }
+              if(datos["fecha_documento"]){
+                let fecha_documento = datos["fecha_documento"].split("-")
+                datos["dd_documento"]=fecha_documento.pop()
+                datos["mm_documento"]=fecha_documento.pop()
+                datos["aaaa_documento"]=fecha_documento.pop()
+              }
+              console.log();
+              for (var dato in datos) {
+                if(list_field_unable.find((field) => dato!==field)) $(`#${dato}`).val(datos[dato])
+              }
+            }
+          });
+        },eliminar:(id)=>{
+          html.modal_add("elimturno","Eliminar turno",'alert','¿Esta seguro que desea eliminar este registro?',(rs)=>{
+            console.log("quiso eliminar?",rs);
+            if(rs){
+              $.ajax({
+                url:"../../class/Turno.php",
+                type:'post',
+                data:{
+                  action:"delete",
+                  token:"Asndvdha$ua334baxhd.nshshqdlfg",
+                  id:turno.rows[id].id_turno
+                },success:(rows)=>{
+                  $(`#elimturno`).modal("hide");
+                  return turno.load(1);
+                },error:(err) => {
+                  $(`#elimturno`).modal("hide");
+                  return console.error("Error al eliminar",err);
+                }
+              })
+            }
+          });
+          html.modal_show("elimturno")
+        }
+      },
+      get:(page,search,call)=>{
+        $.ajax({
+          url:"../../class/Turno.php",
+          type:'post',
+          data:{
+            action:"getRows",
+            page,
+            search
+          },success:(rows)=>{
+            return call(null,JSON.parse(rows));
+          },error:(err) => {
+            return call(err);
+          }
+        })
+      },table:(rows)=>{
+        let table_header=['Opciones'];
+
+        let table_lan={fecha_entrega:"Fecha de entrega",entrega:"Persona que entrego",tipo_documento:"Tipo de documento",descripcion:"Descripción",turnado:"Persona que se turno."};
+
+        let table_body="";
+
+        for(row in rows){
+          table_body+=`<tr>`;
+          table_body+=`<td>${html.dropdown(turno.opt,row)}</td>`
+          for(campo in rows[row]){
+            // console.log(campo);
+            if(table_header.indexOf(table_lan[campo])==-1&&table_lan[campo]) table_header.push(table_lan[campo])
+            if(table_lan[campo])table_body+=`<td>${rows[row][campo]}</td>`;
+          }
+          table_body+=`<td><button ${rows[row]["documento"]?"":"disabled"} class="btn btn-sm btn-success ${rows[row]["documento"]?"":"disabled"}" id="ver" onClick="javascript:window.open('../../${rows[row]["documento"]}');">Ver</button></td>`;
+          table_body+=`</tr>`;
+        }
+        table_header.push("Documento");
+        $(".main .table").html(`<table class="table">
+          <thead><tr><td>${table_header.join("</td><td>")}</td></tr></thead>
+          <tbody>${table_body}</tbody></table>`);
+      },page:(maxlength,page_by_view,set_pag,filter) => {
+        pag_total=Math.ceil(maxlength/page_by_view);
+        page_available=3;//paginas que se puedan visualizar en el tablero
+        page_view=Math.ceil(page_available/2);
+        // console.log(page_view,page_available);
+        i=((page_min = set_pag - page_view)<1)?0:page_min;
+        // console.log(page_view,set_pag,page_min,view,maxlength);
+        page_str=`<nav aria-label="Paginador turno"><ul class="pagination text-center">`;
+        page_str_left=(set_pag-1>0)?"":"disabled";
+        page_str+=`<li class="page-item ${page_str_left}"><a  class="page-link" onClick="turno.load(${set_pag-1},${filter})" href="javascript:;"><</li>`;
+        for (i; i < (page_min<0?0:page_min)+page_available; i++) {
+          page_active=(set_pag==i+1)?"active":"";
+          if(i>-1 && (i+1)<=pag_total)page_str+=`<li class="page-item ${page_active}"><a class="page-link" onClick="turno.load(${i+1},${filter})" href="javascript:;">${i+1}</li>`;
+        }
+        page_str_rigth=(set_pag+1<=pag_total)?"":"disabled";
+        page_str+=`<li class="page-item ${page_str_rigth}"><a  class="page-link" onClick="turno.load(${set_pag+1},${filter})" href="javascript:;">></li>`;
+        page_str+="</ul></nav>";
+        $(".main .page").html(`${page_str}`);
+      },load:(pag,search) => {
+        turno.get(pag,search,(err,rows) => {
+          if(err) return console.error(err);
+          turno.rows=rows.rows;
+          turno.table(rows.rows);
+          turno.page(rows.maxlength,10,pag,search);
+        })
+      }
+    }
+    turno.load(1);
+    html.modal_add("turno","Agregar turno",'form',
+    `<!--<div><h1>con botas</h1></div>-->
+    <form id="formturno" class="formModal" action="javascript:;">
+    <div class="form-group">
+      <label>Entregado por:</label>
+      <input id="entrega" name="entrega" type="text" class="form-control">
+    </div>
+    <div class="form-group">
+      <label>Fecha de entrega:</label>
+      <div class="row">
+        <div class="col col-md-4 col-xs-4 col-sm-4">
+          <input placeholder="dd" id="dd_entrega" name="dd_entrega" type="number" class="form-control campoFecha">
+        </div>
+        <div class="col col-md-4 col-xs-4 col-sm-4">
+          <input placeholder="mm" id="mm_entrega" name="mm_entrega" type="number" class="form-control campoFecha">
+        </div>
+        <div class="col col-md-4 col-xs-4 col-sm-4">
+          <input placeholder="aaaa" id="aaaa_entrega" name="aaaa_entrega" type="number" class="form-control campoFecha">
+        </div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Tipo de documento:</label>
+      <input id="tipo_documento" name="tipo_documento" type="text" class="form-control">
+    </div>
+    <div class="form-group">
+      <label>Fecha del documento:</label>
+      <div class="row">
+        <div class="col col-md-4 col-xs-4 col-sm-4">
+          <input placeholder="dd" id="dd_documento" name="dd_documento" type="number" class="form-control campoFecha">
+        </div>
+        <div class="col col-md-4 col-xs-4 col-sm-4">
+          <input placeholder="mm" id="mm_documento" name="mm_documento" type="number" class="form-control campoFecha">
+        </div>
+        <div class="col col-md-4 col-xs-4 col-sm-4">
+          <input placeholder="aaaa" id="aaaa_documento" name="aaaa_documento" type="number" class="form-control campoFecha">
+        </div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Descripción:</label>
+      <textarea class="form-control" name="descripcion" id="descripcion"></textarea>
+    </div>
+    <div class="form-group">
+      <label>Persona a turnar:</label>
+      <input id="turnado" name="turnado" type="text" class="form-control">
+    </div>
+    <div class="form-group">
+      <label>Evidencia:</label>
+      <input id="documento" name="documento" type="file" class="form-control">
+      ${""}
+    </div>
+    <input id="action" name="action" type="hidden" value="add" class="form-control">
+    </form>
+    `,(quest)=>{
+      if(quest) {
+        valid = 0;
+        errors=[]
+        if(!$("#entrega").val()){
+          errors.push("El campo de entrega no puede quedar vacía.");
+        }
+        if(!$("#descripcion").val()){
+          errors.push("La descripción no puede quedar vacía.");
+        }
+        if(!$("#turnado").val()){
+          errors.push("El campo de turnado no puede quedar vacía.");
+        }
+        if(!$("#tipo_documento").val()){
+          errors.push("El campo de tipo documento no puede quedar vacía.");
+        }
+        if((!$("#dd_entrega").val()||$("#dd_entrega").val()>31)||
+        (!$("#dd_documento").val()||$("#dd_documento").val()>31)){
+          errors.push("Favor de verificar el dia en las fechas.");
+        }
+        if((!$("#mm_entrega").val()||$("#mm_entrega").val()>12)||
+        (!$("#mm_documento").val()||$("#mm_documento").val()>12)){
+          errors.push("Favor de verificar el mes en las fechas.");
+        }
+        $("input[type=number]").each((id)=>{
+          // console.log($("input[type=number]")[id].value)
+          if($("input[type=number]")[id].value!=""&&$("input[type=number]")[id].value<1)errors.push("Favor de verificar las fechas ingresadas.");
+        })
+        // if($("[type=number]").find((input)=> ($(input).val()<0) )){
+        //   console.log("input");
+        // }
+        if(!valid && errors.length>0) {
+          let alert_fade = "";
+          let alert_close = 0;
+          $("#formturno").children().first().before(html.setAlerts(errors).alert());
+          return undefined;
+        }
+        $("#formturno").submit(function(){
+          var form = new FormData($('#formturno')[0]);
+          // console.log("data",form);
+          $.ajax({
+            url:"../../class/Turno.php",
+            type:'post',
+            dataType: 'json',
+            contentType: false,
+            processData: false,
+            data:form,
+            success:(succ)=>{
+              if(!succ||!succ.success){
+                err=[];
+                // console.log("succ.err",succ,succ.err);
+                for(error in succ.err){
+                  // console.log(succ.err[error],succ.err[error].name);
+                  err.push(`${succ.err[error].name}`);
+                }
+                return $("#formturno").children().first().before(html.setAlerts(err).alert());
+              }
+              turno.load(1);
+              $(`#turno`).modal("hide");
+              return $(".main").children().first().before(html.setAlerts(err).alert());
+              // return call(null,JSON.parse(succ));
+            },error:(err) => {
+              console.log(err);
+              // return call(err);
+            }
+          })
+        }());
+        // $("#turno").modal("hide")
+      }
+    })
+    $("#addTurno").click((e)=>html.modal_show("turno",()=>{
+      $(`#formturno`)[0].reset();
+      $(`#formturno #ver`).remove();
+      $("[name=id_turno]").remove();
+      $("[name=action]").val("add");
+    }))
+    $("#search").click((e)=>{
+      if(!$("#search_field").val()) return "";
+      // console.log("buscando",$("#clean"));
+      turno.load(1,$("#search_field").val())
+      if(!$("#clean")[0])$("#search_field").parent().append("<button id='clean' class='btn btn-warning'>Limpiar</button>");
+      $("#clean").click((e)=>{
+        $("#search_field").val("")
+        turno.load(1)
+        $("#clean").remove()
+      })
+    })
+
+
+  </script>
+</html>
