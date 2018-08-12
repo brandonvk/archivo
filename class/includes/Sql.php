@@ -23,8 +23,9 @@ class Sql extends Credentials{
     }
     // return "INSERT INTO $table (".substr($campos,0,-1).") values (".substr($valores,0,-1).")";
     $rs=$this->sql->query($this->getSql="INSERT INTO $table (".substr($campos,0,-1).") values (".substr($valores,0,-1).")");
+    $id=$this->sql->insert_id;
     $this->dissconect();
-    return $rs;
+    return $id;
   }
 
   public function update($table,$data,$filter_id){
@@ -48,7 +49,7 @@ class Sql extends Credentials{
       while($row = $rows->fetch_assoc()){
         $result[]=$row;
       }
-      $this->dissconect();  
+      $this->dissconect();
     }
     return $result;
   }

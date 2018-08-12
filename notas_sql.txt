@@ -7,3 +7,7 @@ create table contrato( id_contrato int(11) not null PRIMARY key AUTO_INCREMENT, 
 alter table direccion add isDelete int(1) default 0
 
 alter table contenedor add isDelete int(1) default 0
+
+ALTER TABLE `documento` ADD `isDelete` INT(1) NOT NULL DEFAULT '0' AFTER `fecha_documento`;
+
+ALTER TABLE `oficio` ADD `isDelete` INT(11) NOT NULL DEFAULT '0' AFTER `ccp4`;

@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta charset="utf-8">
-    <title>Turnado</title>
+    <title>Oficio</title>
     <link rel="stylesheet" href="../css/plugin/bootstrap/bootstrap.min.css" >
     <link rel="stylesheet" href="../css/plugin/iconic-bootstrap/font/css/open-iconic-bootstrap.min.css" >
     <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/open-iconic/1.1.0/font/css/open-iconic-bootstrap.min.css" /> -->
@@ -48,7 +48,7 @@
       <div class="col-12 header">
       <!-- <div class="col col-md-12 col-xs-12 col-sm-12 header"> -->
         <!-- <span class="oi oi-data-transfer-cog"></span> -->
-        <h2 class="titulo">Turnado</h2>
+        <h2 class="titulo">Oficio</h2>
       </div>
 
       <!-- <div class="col col-md-12 col-xs-12 col-sm-12 agregar">
@@ -62,7 +62,7 @@
       </div>
 
       <div class="col col-md-6 col-xs-6 col-sm-6 text-right">
-        <button id="addTurno" class="btn btn-success " type="button" name="button" >Agregar</button>
+        <button id="addOficio" class="btn btn-success " type="button" name="button" >Agregar</button>
       </div>
 
 
@@ -80,8 +80,22 @@
   <script type="text/javascript" src="../js/jquery-3.3.1.js">  </script>
   <script type="text/javascript" src="../js/popper.min.js">  </script>
   <script type="text/javascript" src="../js/bootstrap.min.js">  </script>
-  <script type="text/javascript">
+  <script>
+  http = {
+    setting:{},
+    post:function(){
 
+    },peticion:function(){
+      $.ajax(settings)
+    }
+  }
+  </script>
+  <script type="text/javascript">
+    cat={
+      contenedor:async ()=>{
+
+      }
+    }
     let html={
       modal_head:(id,title) => {
         return head=`<div class="modal fade" id="${id}" tabindex="-1" role="dialog" aria-labelledby="${id}Label" aria-hidden="true">`+
@@ -125,7 +139,7 @@
         </button>
         <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">`;
         for (var opt_key in opt) {
-            dropdown_str+=`<a class="dropdown-item" href="#" onClick="turno.opt['${opt_key}'](${id})">${opt_key}</a>`;
+            dropdown_str+=`<a class="dropdown-item" href="#" onClick="oficio.opt['${opt_key}'](${id})">${opt_key}</a>`;
         }
         dropdown_str+=`</div>
       </div>`;
@@ -144,20 +158,20 @@
       return $(`<div class="col">${errors_str}</div>`);
     }
     }
-    turno={
+    oficio={
       opt:{
         editar:(id)=>{
-          // console.log("editar",id,turno.rows[id]);
-          html.modal_show("turno",()=>{
+          // console.log("editar",id,oficio.rows[id]);
+          html.modal_show("oficio",()=>{
 
-            $(`#formturno`)[0].reset();
-            $(`#formturno #ver`).remove();
-            if(datos=turno.rows[id]){
+            $(`#formoficio`)[0].reset();
+            $(`#formoficio #ver`).remove();
+            if(datos=oficio.rows[id]){
               list_field_unable=["documento"];
               // console.log("x__",datos);
               if(datos["documento"]) $("#documento").parent().append(`<button id="ver" class="btn btn-success" id="ver" onClick="javascript:window.open('../../${datos["documento"]}');">Ver</button>`);
-              $("#turno .modal-title").text("Editar turno");
-              $(`#formturno`).append(`<input value="${datos["id_turno"]}" type="hidden" name="id_turno">`);
+              $("#oficio .modal-title").text("Editar oficio");
+              $(`#formoficio`).append(`<input value="${datos["id_oficio"]}" type="hidden" name="id_oficio">`);
               datos["action"]="edit";
               if(datos["fecha_entrega"]){
                 let fecha_entrega = datos["fecha_entrega"].split("-")
@@ -178,32 +192,32 @@
             }
           });
         },eliminar:(id)=>{
-          html.modal_add("elimturno","Eliminar turno",'alert','¿Esta seguro que desea eliminar este registro?',(rs)=>{
+          html.modal_add("elimoficio","Eliminar oficio",'alert','¿Esta seguro que desea eliminar este registro?',(rs)=>{
             console.log("quiso eliminar?",rs);
             if(rs){
               $.ajax({
-                url:"../../class/Turno.php",
+                url:"../../class/Oficio.php",
                 type:'post',
                 data:{
                   action:"delete",
                   token:"Asndvdha$ua334baxhd.nshshqdlfg",
-                  id:turno.rows[id].id_turno
+                  id:oficio.rows[id].id_oficio
                 },success:(rows)=>{
-                  $(`#elimturno`).modal("hide");
-                  return turno.load(1);
+                  $(`#elimoficio`).modal("hide");
+                  return oficio.load(1);
                 },error:(err) => {
-                  $(`#elimturno`).modal("hide");
+                  $(`#elimoficio`).modal("hide");
                   return console.error("Error al eliminar",err);
                 }
               })
             }
           });
-          html.modal_show("elimturno")
+          html.modal_show("elimoficio")
         }
       },
       get:(page,search,call)=>{
         $.ajax({
-          url:"../../class/Turno.php",
+          url:"../../class/Oficio.php",
           type:'post',
           data:{
             action:"getRows",
@@ -218,23 +232,33 @@
       },table:(rows)=>{
         let table_header=['Opciones'];
 
-        let table_lan={fecha_entrega:"Fecha de entrega",entrega:"Persona que entrego",tipo_documento:"Tipo de documento",descripcion:"Descripción",turnado:"Persona que se turno."};
+        let table_lan={
+          fecha_entrega:"Fecha de entrega",
+          entrega:"Persona que entrego",
+          tipo_documento:"Tipo de documento",
+          descripcion:"Descripción",
+          turnado:"Persona que se oficio."
+        };
 
         let table_body="";
 
         for(row in rows){
-          table_body+=`<tr>`;
-          table_body+=`<td>${html.dropdown(turno.opt,row)}</td>`
+          table_option=`<td>${html.dropdown(oficio.opt,row)}</td>`
+          table_field=[];
           for(campo in rows[row]){
             // console.log(campo);
             if(table_header.indexOf(table_lan[campo])==-1&&table_lan[campo]) table_header.push(table_lan[campo])
-            if(table_lan[campo])table_body+=`<td>${rows[row][campo]}</td>`;
+            if(table_lan[campo])table_field.join(`<td>${rows[row][campo]}</td>`);
           }
-          table_body+=`</tr>`;
+          if(table_field.length){
+            table_body+=`<tr>${table_option}${table_field.join()}</tr>`;
+          }
         }
-        $(".main .table").html(`<table class="table">
+        if(table_body!=''){
+          $(".main .table").html(`<table class="table">
           <thead><tr><td>${table_header.join("</td><td>")}</td></tr></thead>
           <tbody>${table_body}</tbody></table>`);
+        }
       },page:(maxlength,page_by_view,set_pag,filter) => {
         pag_total=Math.ceil(maxlength/page_by_view);
         page_available=3;//paginas que se puedan visualizar en el tablero
@@ -242,30 +266,30 @@
         // console.log(page_view,page_available);
         i=((page_min = set_pag - page_view)<1)?0:page_min;
         // console.log(page_view,set_pag,page_min,view,maxlength);
-        page_str=`<nav aria-label="Paginador turno"><ul class="pagination text-center">`;
+        page_str=`<nav aria-label="Paginador oficio"><ul class="pagination text-center">`;
         page_str_left=(set_pag-1>0)?"":"disabled";
-        page_str+=`<li class="page-item ${page_str_left}"><a  class="page-link" onClick="turno.load(${set_pag-1},${filter})" href="javascript:;"><</li>`;
+        page_str+=`<li class="page-item ${page_str_left}"><a  class="page-link" onClick="oficio.load(${set_pag-1},${filter})" href="javascript:;"><</li>`;
         for (i; i < (page_min<0?0:page_min)+page_available; i++) {
           page_active=(set_pag==i+1)?"active":"";
-          if(i>-1 && (i+1)<=pag_total)page_str+=`<li class="page-item ${page_active}"><a class="page-link" onClick="turno.load(${i+1},${filter})" href="javascript:;">${i+1}</li>`;
+          if(i>-1 && (i+1)<=pag_total)page_str+=`<li class="page-item ${page_active}"><a class="page-link" onClick="oficio.load(${i+1},${filter})" href="javascript:;">${i+1}</li>`;
         }
         page_str_rigth=(set_pag+1<=pag_total)?"":"disabled";
-        page_str+=`<li class="page-item ${page_str_rigth}"><a  class="page-link" onClick="turno.load(${set_pag+1},${filter})" href="javascript:;">></li>`;
+        page_str+=`<li class="page-item ${page_str_rigth}"><a  class="page-link" onClick="oficio.load(${set_pag+1},${filter})" href="javascript:;">></li>`;
         page_str+="</ul></nav>";
         $(".main .page").html(`${page_str}`);
       },load:(pag,search) => {
-        turno.get(pag,search,(err,rows) => {
+        oficio.get(pag,search,(err,rows) => {
           if(err) return console.error(err);
-          turno.rows=rows.rows;
-          turno.table(rows.rows);
-          turno.page(rows.maxlength,10,pag,search);
+          oficio.rows=rows.rows;
+          oficio.table(rows.rows);
+          oficio.page(rows.maxlength,10,pag,search);
         })
       }
     }
-    turno.load(1);
-    html.modal_add("turno","Agregar turno",'form',
+    oficio.load(1);
+    html.modal_add("oficio","Agregar oficio",'form',
     `<!--<div><h1>con botas</h1></div>-->
-    <form id="formturno" class="formModal" action="javascript:;">
+    <form id="formoficio" class="formModal" action="javascript:;">
     <div class="form-group">
       <label>Entregado por:</label>
       <input id="entrega" name="entrega" type="text" class="form-control">
@@ -351,14 +375,14 @@
         if(!valid && errors.length>0) {
           let alert_fade = "";
           let alert_close = 0;
-          $("#formturno").children().first().before(html.setAlerts(errors).alert());
+          $("#formoficio").children().first().before(html.setAlerts(errors).alert());
           return undefined;
         }
-        $("#formturno").submit(function(){
-          var form = new FormData($('#formturno')[0]);
+        $("#formoficio").submit(function(){
+          var form = new FormData($('#formoficio')[0]);
           // console.log("data",form);
           $.ajax({
-            url:"../../class/Turno.php",
+            url:"../../class/Oficio.php",
             type:'post',
             dataType: 'json',
             contentType: false,
@@ -372,10 +396,10 @@
                   // console.log(succ.err[error],succ.err[error].name);
                   err.push(`${succ.err[error].name}`);
                 }
-                return $("#formturno").children().first().before(html.setAlerts(err).alert());
+                return $("#formoficio").children().first().before(html.setAlerts(err).alert());
               }
-              turno.load(1);
-              $(`#turno`).modal("hide");
+              oficio.load(1);
+              $(`#oficio`).modal("hide");
               return $(".main").children().first().before(html.setAlerts(err).alert());
               // return call(null,JSON.parse(succ));
             },error:(err) => {
@@ -384,23 +408,23 @@
             }
           })
         }());
-        // $("#turno").modal("hide")
+        // $("#oficio").modal("hide")
       }
     })
-    $("#addTurno").click((e)=>html.modal_show("turno",()=>{
-      $(`#formturno`)[0].reset();
-      $(`#formturno #ver`).remove();
-      $("[name=id_turno]").remove();
+    $("#addOficio").click((e)=>html.modal_show("oficio",()=>{
+      $(`#formoficio`)[0].reset();
+      $(`#formoficio #ver`).remove();
+      $("[name=id_oficio]").remove();
       $("[name=action]").val("add");
     }))
     $("#search").click((e)=>{
       if(!$("#search_field").val()) return "";
       // console.log("buscando",$("#clean"));
-      turno.load(1,$("#search_field").val())
+      oficio.load(1,$("#search_field").val())
       if(!$("#clean")[0])$("#search_field").parent().append("<button id='clean' class='btn btn-warning'>Limpiar</button>");
       $("#clean").click((e)=>{
         $("#search_field").val("")
-        turno.load(1)
+        oficio.load(1)
         $("#clean").remove()
       })
     })
